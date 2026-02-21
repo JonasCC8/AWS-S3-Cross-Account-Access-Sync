@@ -28,7 +28,6 @@ Permitir que una cuenta AWS:
 ---
 
 ## 🏗️ Arquitectura
-## 🏗️ Diagrama de Arquitectura
 
 <p align="center">
   <img src="images/aws-s3-cross-account-architecture.png" width="900">
