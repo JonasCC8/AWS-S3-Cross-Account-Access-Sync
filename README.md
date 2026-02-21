@@ -1,64 +1,58 @@
-🔁 AWS S3 Cross-Account Access & Sync
-📖 Descripción
+# 🔁 AWS S3 Cross-Account Access & Sync
 
-Este laboratorio demuestra cómo configurar acceso entre cuentas AWS para permitir lectura de un bucket S3 desde otra cuenta y posteriormente realizar sincronización de objetos utilizando AWS CloudShell.
+Laboratorio práctico para configurar acceso entre cuentas AWS y sincronizar objetos entre buckets S3 utilizando IAM, Bucket Policies y AWS CloudShell.
 
-Escenario:
+---
 
-Cuenta origen: Bucket s3-aaaa
+## 📖 Descripción
 
-Cuenta destino: Bucket s3-bbbb
+Este proyecto demuestra cómo permitir que una cuenta AWS acceda a un bucket S3 ubicado en otra cuenta, aplicando buenas prácticas de seguridad y el principio de mínimo privilegio.
 
-Acceso cross-account mediante Bucket Policy
+Se implementa:
 
-Rol IAM para permisos de replicación
+- Acceso cross-account mediante Bucket Policy
+- Rol IAM para permisos específicos de replicación
+- Sincronización de datos con AWS CLI
+- Separación de responsabilidades entre cuentas
 
-Sincronización usando AWS CLI
+---
 
-🏗️ Arquitectura
-
-Cuenta A (Origen)
-Bucket: s3-aaaa
-
-⬇ Permiso cross-account
-
-Cuenta B (Destino)
-Bucket: s3-bbbb
-Rol IAM de replicación
-
-⬇
-
-AWS CloudShell
-Comando aws s3 sync
-
-🎯 Objetivo
+## 🎯 Objetivo
 
 Permitir que una cuenta AWS:
 
-Liste el bucket
+- Liste el bucket origen
+- Lea objetos del bucket origen
+- Configure permisos controlados de replicación
+- Sincronice información entre buckets
+---
 
-Lea objetos
+## 🏗️ Arquitectura
+## 🏗️ Diagrama de Arquitectura
 
-Configure permisos de replicación
+<p align="center">
+  <img src="images/aws-s3-cross-account-architecture.png" width="900">
+</p>
 
-Sincronice información entre buckets
+---
 
-🧩 Paso 1 – Agregar Bucket Policy (Cuenta Origen)
+# 🧩 Paso 1 – Configurar Bucket Policy (Cuenta Origen)
 
-Ir a:
+Ruta en consola:
 
-S3 → Bucket s3-aaaa → Permissions → Bucket Policy
+S3 → Bucket `s3-aaaa` → Permissions → Bucket Policy
 
 Agregar la siguiente política:
 
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowPromoERPRead",
+      "Sid": "AllowCrossAccountList",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::cuenta:root"
+        "AWS": "arn:aws:iam::ID_CUENTA_DESTINO:root"
       },
       "Action": [
         "s3:ListBucket"
@@ -66,10 +60,10 @@ Agregar la siguiente política:
       "Resource": "arn:aws:s3:::s3-aaaa"
     },
     {
-      "Sid": "AllowPromoERPGetObjects",
+      "Sid": "AllowCrossAccountRead",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::cuenta:root"
+        "AWS": "arn:aws:iam::ID_CUENTA_DESTINO:root"
       },
       "Action": [
         "s3:GetObject"
@@ -78,46 +72,93 @@ Agregar la siguiente política:
     }
   ]
 }
+]
 
+---
 
-✅ Esto permite a la cuenta destino listar y leer objetos del bucket origen.
+# 🧩 Paso 1 – Configurar Bucket Policy (Cuenta Origen)
 
-🧩 Paso 2 – Crear Rol IAM en la Cuenta Destino
+Ruta en consola:
 
-Ir a:
+S3 → Bucket `s3-aaaa` → Permissions → Bucket Policy
 
-IAM → Roles → Create role
+Agregar la siguiente política:
 
-Tipo:
-
-Another AWS Account
-
-Agregar la siguiente política al rol:
-
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowReplicationFromS3Sanki",
+      "Sid": "AllowCrossAccountList",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::ID_CUENTA_A:role/copia-s3-rol"
+        "AWS": "arn:aws:iam::ID_CUENTA_DESTINO:root"
+      },
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::s3-aaaa"
+    },
+    {
+      "Sid": "AllowCrossAccountRead",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::ID_CUENTA_DESTINO:root"
+      },
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::s3-aaaa/*"
+    }
+  ]
+}
+ }
+```
+✅ Esto permite que la cuenta destino pueda listar y leer objetos del bucket origen.
+
+---
+
+# 🧩 Paso 2 – Crear Rol IAM en la Cuenta Destino
+
+### 📍 Ruta en Consola
+
+IAM → Roles → Create Role
+
+### 🔹 Seleccionar
+
+- Another AWS Account
+
+### 🔹 Adjuntar política personalizada
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowReplicationFromSource",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::ID_CUENTA_ORIGEN:role/copia-s3-rol"
       },
       "Action": [
         "s3:ReplicateObject",
         "s3:ReplicateDelete",
         "s3:ReplicateTags"
       ],
-      "Resource": "arn:aws:s3:::s3-next-cloud/*"
+      "Resource": "arn:aws:s3:::s3-bbbb/*"
     }
   ]
 }
 
+```
 
-🔐 Buenas prácticas aplicadas:
+# 🧩 Paso 3 – Sincronización con AWS CloudShell
 
-Principio de mínimo privilegio
+### 📍 Procedimiento
 
-Permisos específicos de replicación
+1. Ingresar a la **Cuenta Destino**.
+2. Abrir **AWS CloudShell** desde la consola.
+3. Ejecutar el siguiente comando:
 
-Restricción por recurso
+```bash
+aws s3 sync s3://s3-aaaa/ s3://s3-bbbb/
