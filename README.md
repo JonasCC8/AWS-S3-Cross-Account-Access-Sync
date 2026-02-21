@@ -1,6 +1,6 @@
 # 🔁 AWS S3 Cross-Account Access & Sync
 
-Laboratorio práctico para configurar acceso entre cuentas AWS y sincronizar objetos entre buckets S3 utilizando IAM, Bucket Policies y AWS CloudShell.
+Acceso entre cuentas AWS y sincronizar objetos entre buckets S3 utilizando IAM, Bucket Policies y AWS CloudShell.
 
 ---
 
