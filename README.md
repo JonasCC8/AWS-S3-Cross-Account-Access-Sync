@@ -73,45 +73,6 @@ Agregar la siguiente política:
 }
 ]
 
----
-
-# 🧩 Paso 1 – Configurar Bucket Policy (Cuenta Origen)
-
-Ruta en consola:
-
-S3 → Bucket `s3-aaaa` → Permissions → Bucket Policy
-
-Agregar la siguiente política:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowCrossAccountList",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::ID_CUENTA_DESTINO:root"
-      },
-      "Action": [
-        "s3:ListBucket"
-      ],
-      "Resource": "arn:aws:s3:::s3-aaaa"
-    },
-    {
-      "Sid": "AllowCrossAccountRead",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::ID_CUENTA_DESTINO:root"
-      },
-      "Action": [
-        "s3:GetObject"
-      ],
-      "Resource": "arn:aws:s3:::s3-aaaa/*"
-    }
-  ]
-}
- }
 ```
 ✅ Esto permite que la cuenta destino pueda listar y leer objetos del bucket origen.
 
