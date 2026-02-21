@@ -122,3 +122,10 @@ IAM → Roles → Create Role
 
 ```bash
 aws s3 sync s3://s3-aaaa/ s3://s3-bbbb/
+
+```
+## 📦 Descargar Proyecto Completo
+
+Puedes descargar la versión completa en Terraform y JSON aquí:
+
+[⬇ Descargar ZIP del Proyecto](aws-s3-cross-account-sync-project.zip)
